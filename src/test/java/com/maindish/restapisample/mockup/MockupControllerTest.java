@@ -7,6 +7,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.util.LinkedMultiValueMap;
@@ -80,7 +81,7 @@ public class MockupControllerTest {
 
         String requestBody = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mockupDto);
 
-        mockMvc.perform(post("/mockup").contentType("application/json").content(requestBody))
+        mockMvc.perform(post("/mockup").contentType(MediaType.APPLICATION_JSON).content(requestBody))
                 .andDo(print())
                 .andExpect(status().isOk());
     }
@@ -101,7 +102,7 @@ public class MockupControllerTest {
 
         String requestBody = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mockupDto);
 
-        mockMvc.perform(post("/mockup").contentType("application/json").content(requestBody))
+        mockMvc.perform(post("/mockup").contentType(MediaType.APPLICATION_JSON).content(requestBody))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
     }
@@ -110,7 +111,7 @@ public class MockupControllerTest {
     public void mockup_post_httpstatus_internal_server_error() throws Exception {
         String requestBody = "TEST";
 
-        mockMvc.perform(post("/mockup").contentType("application/json").content(requestBody))
+        mockMvc.perform(post("/mockup").contentType(MediaType.APPLICATION_JSON).content(requestBody))
                 .andDo(print())
                 .andExpect(status().isInternalServerError());
     }

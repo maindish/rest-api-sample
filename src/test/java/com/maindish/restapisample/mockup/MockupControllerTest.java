@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -15,94 +16,101 @@ import org.springframework.util.MultiValueMap;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.hamcrest.Matchers.is;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureMockMvc
+@WebMvcTest
 public class MockupControllerTest {
     @Autowired
     MockMvc mockMvc;
 
     @Test
-    public void index_get_success() throws Exception {
+    public void index_get_http_status_ok() throws Exception {
         mockMvc.perform(get("/"))
+                .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().string("Hello"))
-                .andDo(print());
+                .andExpect(content().string("Hello"));
     }
 
     @Test
-    public void index_get_httpstatus_not_found() throws Exception {
+    public void index_get_http_status_not_found() throws Exception {
         mockMvc.perform(get("/unknown"))
-                .andExpect(status().isNotFound())
-                .andDo(print());
+                .andDo(print())
+                .andExpect(status().isNotFound());
     }
 
     @Test
-    public void mockup_get_httpstatus_ok() throws Exception {
-        int id = 123;
-        String name = "maindish";
+    public void mockup_get_http_status_ok() throws Exception {
+        final int id = 123;
+        final String name = "maindish";
 
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-
-        params.add("id", Integer.toString(id));
-        params.add("name", name);
-
-        mockMvc.perform(get("/mockup").queryParams(params))
+        mockMvc.perform(
+                get("/mockup")
+                        .param("id", String.valueOf(id))
+                        .param("name", name))
                 .andDo(print())
                 .andExpect(status().isOk());
     }
 
     @Test
     public void mockup_get_httpstatus_bad_request() throws Exception {
-        int id = 123;
+        final int id = 123;
 
-        mockMvc.perform(get("/mockup").queryParam("id", Integer.toString(id)))
+        mockMvc.perform(
+                get("/mockup")
+                        .param("id", String.valueOf(id)))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     public void mockup_post_httpstatus_ok() throws Exception {
-        int id = 123;
-        String name = "maindish";
-        ServiceCode serviceCode = ServiceCode.STEAM;
+        final int age = 123;
+        final String name = "maindish";
+        final ServiceCode serviceCode = ServiceCode.STEAM;
+        final int expectedServiceCode = 1;
 
         ObjectMapper mapper = new ObjectMapper();
         MockupDto mockupDto = MockupDto.builder()
-                .age(id)
+                .age(age)
                 .name(name)
                 .serviceCode(serviceCode)
                 .build();
 
-
         String requestBody = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mockupDto);
 
-        mockMvc.perform(post("/mockup").contentType(MediaType.APPLICATION_JSON).content(requestBody))
+        mockMvc.perform(
+                post("/mockup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
                 .andDo(print())
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.name", is(name)))
+                .andExpect(jsonPath("$.data.age", is(age)))
+                .andExpect(jsonPath("$.data.serviceCode", is(expectedServiceCode)));
     }
 
     @Test
     public void mockup_post_httpstatus_bad_request() throws Exception {
-        int id = 123;
-        String name = " ";
-        ServiceCode serviceCode = ServiceCode.STEAM;
+        final int age = 123;
+        final String name = " ";
+        final ServiceCode serviceCode = ServiceCode.STEAM;
 
         ObjectMapper mapper = new ObjectMapper();
         MockupDto mockupDto = MockupDto.builder()
-                .age(id)
+                .age(age)
                 .name(name)
                 .serviceCode(serviceCode)
                 .build();
 
-
         String requestBody = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mockupDto);
 
-        mockMvc.perform(post("/mockup").contentType(MediaType.APPLICATION_JSON).content(requestBody))
+        mockMvc.perform(
+                post("/mockup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
     }
@@ -111,7 +119,10 @@ public class MockupControllerTest {
     public void mockup_post_httpstatus_internal_server_error() throws Exception {
         String requestBody = "TEST";
 
-        mockMvc.perform(post("/mockup").contentType(MediaType.APPLICATION_JSON).content(requestBody))
+        mockMvc.perform(
+                post("/mockup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
                 .andDo(print())
                 .andExpect(status().isInternalServerError());
     }

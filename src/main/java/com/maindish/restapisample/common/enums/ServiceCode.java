@@ -2,9 +2,12 @@ package com.maindish.restapisample.common.enums;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 @AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public enum ServiceCode {
     STEAM(1),
     NEXON(2),
